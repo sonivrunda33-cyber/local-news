@@ -1,0 +1,55 @@
+{% macro vote_bar(p) %}
+{% set own = p.user_id == current_user.id %}
+{% set locked = own or current_user.status != 'active' or p.status != 'active' %}
+{% set voted = p.my_vote is not none and p.my_vote != '' %}
+<div class="news-actions" data-post-id="{{ p.id }}" data-my-vote="{{ p.my_vote or '' }}"
+     data-locked="{{ 1 if (locked or voted) else 0 }}">
+  <div class="vote-group">
+    <button type="button" class="btn-vote relevant {{ 'is-on' if p.my_vote == 'relevant' }}"
+            data-action="relevant" {{ 'disabled' if (locked or voted) }}
+            title="{{ 'You cannot vote on your own news' if own else 'Mark as relevant' }}">
+      <span aria-hidden="true">✔</span> Relevant <b data-count="relevant">{{ p.relevant_count }}</b>
+    </button>
+    <div class="fake-wrap">
+      <button type="button" class="btn-vote fake {{ 'is-on' if p.my_vote == 'fake' }}"
+              data-action="fake" {{ 'disabled' if (locked or voted) }} aria-haspopup="true"
+              title="{{ 'You cannot vote on your own news' if own else 'Mark as fake' }}">
+        <span aria-hidden="true">✖</span> Fake <b data-count="fake">{{ p.fake_count }}</b>
+      </button>
+      <div class="reason-pop" hidden role="menu" aria-label="Why is it fake?">
+        <div class="reason-title"><span>Why is this fake?</span><button type="button" class="reason-close" data-close-pop aria-label="Close">×</button></div>
+        <button type="button" role="menuitem" data-reason="False">Completely False</button>
+        <button type="button" role="menuitem" data-reason="Misleading">Misleading</button>
+        <button type="button" role="menuitem" data-reason="Inaccurate">Inaccurate</button>
+      </div>
+    </div>
+  </div>
+  <button type="button" class="btn-save {{ 'is-on' if p.saved }}" data-action="save"
+          aria-pressed="{{ 'true' if p.saved else 'false' }}">
+    <span class="save-label">{{ 'Saved' if p.saved else 'Save' }}</span>
+  </button>
+</div>
+{% endmacro %}
+
+{% macro news_card(p, news_service) %}
+<article class="news-card">
+  <a class="news-media" href="{{ url_for('news.detail', post_id=p.id) }}" tabindex="-1" aria-hidden="true">
+    {% if p.cover %}
+    <img src="{{ url_for('uploaded_file', filename=p.cover) }}" alt="" loading="lazy">
+    {% else %}
+    <div class="media-placeholder"><span>LOCAL NEWS</span></div>
+    {% endif %}
+    {% if p.image_count > 1 %}<span class="img-count">{{ p.image_count }} photos</span>{% endif %}
+  </a>
+  <div class="news-body">
+    <div class="news-meta">
+      <span class="pin">📍 {{ news_service.location_label(p) }}</span>
+      <span>{{ p.created_at|timeago }}</span>
+    </div>
+    <h3 class="news-title"><a href="{{ url_for('news.detail', post_id=p.id) }}">{{ p.title }}</a></h3>
+    <p class="snippet">{{ p.description|truncate(130, True) }}</p>
+    <div class="news-author">By {{ p.author_name }}</div>
+    {{ vote_bar(p) }}
+  </div>
+</article>
+{% endmacro %}

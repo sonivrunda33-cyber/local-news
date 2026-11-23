@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% from "_location_select.html" import location_select %}
+{% block title %}Settings{% endblock %}
+{% block content %}
+<h1>Settings</h1>
+
+<section class="card reputation-card">
+  <h2>Reputation Score</h2>
+  <div class="rp-display"><strong>{{ reputation }}</strong><span>RP / 100</span></div>
+  <p class="hint">Your reputation is capped at 100. Confirmed fake-news penalties reduce this score. Deleting a post does not restore deducted points.</p>
+</section>
+
+<section class="card">
+  <h2>Appearance</h2>
+  <div class="theme-options" role="radiogroup" aria-label="Appearance mode">
+    <button type="button" class="theme-opt {{ 'is-on' if theme == 'light' }}" data-theme-choice="light" role="radio"
+            aria-checked="{{ 'true' if theme == 'light' else 'false' }}">☀ Light Mode</button>
+    <button type="button" class="theme-opt {{ 'is-on' if theme == 'night' }}" data-theme-choice="night" role="radio"
+            aria-checked="{{ 'true' if theme == 'night' else 'false' }}">☾ Night Mode</button>
+  </div>
+  <p class="hint">Saved to your account, so it stays after you log out and back in.</p>
+</section>
+
+<section class="card">
+  <h2>Current location</h2>
+  <p>Currently: <b>{{ current_location or 'Not set' }}</b></p>
+  <form method="post" action="{{ url_for('settings.change_location') }}" novalidate data-location-form>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    {{ location_select(states, {}) }}
+    <button class="btn btn-primary" type="submit">Change current location</button>
+  </form>
+</section>
+
+<section class="card">
+  <h2>Followed locations</h2>
+  {% if followed %}
+  <ul class="list">
+    {% for f in followed %}
+    <li class="list-row">
+      <span>{{ f.label }}</span>
+      <form method="post" action="{{ url_for('settings.unfollow', location_id=f.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button class="btn btn-ghost btn-sm" type="submit">Remove</button>
+      </form>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}<p class="muted">You don't follow any locations yet.</p>{% endif %}
+  <h3 class="section-sub">Follow a new location</h3>
+  <form method="post" action="{{ url_for('settings.follow') }}" novalidate data-location-form data-follow="1">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    {{ location_select(states, {}) }}
+    <p class="hint">Pick just a state, or go down to a city or area.</p>
+    <button class="btn btn-primary" type="submit">Follow location</button>
+  </form>
+</section>
+
+<section class="card">
+  <h2>Session</h2>
+  <form method="post" action="{{ url_for('auth.logout') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <button class="btn btn-danger" type="submit">Logout</button>
+  </form>
+</section>
+<script src="{{ url_for('static', filename='js/locations.js') }}" defer></script>
+{% endblock %}

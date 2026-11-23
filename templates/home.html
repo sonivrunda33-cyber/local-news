@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% from "_card.html" import news_card with context %}
+{% block title %}Home{% endblock %}
+{% block content %}
+
+{% if featured %}
+<section class="slideshow" id="slideshow" aria-label="Featured news" aria-roledescription="carousel">
+  <div class="slides">
+    {% for p in featured %}
+    <a class="slide {{ 'active' if loop.first }}" href="{{ url_for('news.detail', post_id=p.id) }}"
+       aria-label="{{ p.title }}">
+      <img src="{{ url_for('uploaded_file', filename=p.cover) }}" alt="" {{ 'loading=lazy' if not loop.first }}>
+      <div class="slide-shade"></div>
+      <div class="slide-caption">
+        <span class="chip">📍 {{ news_service.location_label(p) }}</span>
+        <h2>{{ p.title }}</h2>
+        <p>{{ p.description|truncate(110, True) }}</p>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+  {% if featured|length > 1 %}
+  <button class="slide-btn prev" type="button" aria-label="Previous slide">‹</button>
+  <button class="slide-btn next" type="button" aria-label="Next slide">›</button>
+  <div class="slide-dots">
+    {% for p in featured %}<button type="button" class="dot {{ 'active' if loop.first }}" aria-label="Slide {{ loop.index }}"></button>{% endfor %}
+  </div>
+  {% endif %}
+</section>
+{% endif %}
+
+<section class="card home-location-filter">
+  <h2>Choose news location</h2>
+  {% if filter_label %}<p class="muted">Showing news for: <b>{{ filter_label }}</b></p>{% endif %}
+  <form method="post" action="{{ url_for('news.set_news_location') }}" data-location-select data-home-filter data-location-form data-follow="1">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <div class="loc-select filter-selects" data-initial-state="{{ location_form.get('state_id','') }}" data-initial-city="{{ location_form.get('city_id','') }}" data-initial-area="{{ location_form.get('area_id','') }}">
+      <label class="field"><span>State</span><select name="state_id" data-level="state"><option value="">Select state</option>{% for st in states %}<option value="{{ st.id }}" {{ 'selected' if location_form.get('state_id')|string == st.id|string }}>{{ st.name }}</option>{% endfor %}</select></label>
+      <label class="field"><span>City</span><select name="city_id" data-level="city" disabled><option value="">Select city</option></select></label>
+      <label class="field"><span>Area</span><select name="area_id" data-level="area" disabled><option value="">Select area</option></select></label>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-primary" type="submit">Show news</button>
+      <button class="btn btn-ghost" type="submit" formaction="{{ url_for('news.clear_news_location') }}" formnovalidate data-skip-validate>My location</button>
+    </div>
+  </form>
+</section>
+
+{% if current_user.status != 'active' %}
+<div class="flash flash-info">Your account is read-only: you can read news, but you can no longer vote or publish.</div>
+{% endif %}
+
+{% set blocks = [('area', 'Area News', 'News from your area'), ('city', 'City News', 'News from your city')] %}
+{% for key, heading, sub in blocks %}
+<section class="news-section" id="section-{{ key }}">
+  <div class="section-head"><h2>{{ heading }}</h2><span class="muted">{{ sub }}</span></div>
+  {% if sections[key] %}
+  <div class="news-grid news-swipe">
+    {% for p in sections[key] %}{{ news_card(p, news_service) }}{% endfor %}
+  </div>
+  {% else %}
+  <div class="empty">No news here yet. {% if current_user.status == 'active' %}<a href="{{ url_for('news.create') }}">Publish the first one.</a>{% endif %}</div>
+  {% endif %}
+</section>
+{% endfor %}
+<script src="{{ url_for('static', filename='js/locations.js') }}" defer></script>
+<script src="{{ url_for('static', filename='js/news.js') }}" defer></script>
+{% endblock %}

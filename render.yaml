@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: local-news
+    runtime: python
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn --workers 1 --threads 4 --timeout 120 --bind 0.0.0.0:$PORT 'app:create_app()'
+    healthCheckPath: /healthz
+    autoDeploy: true
+    envVars:
+      - key: LOCAL_NEWS_ENV
+        value: production
+      - key: LOCAL_NEWS_SECURE_COOKIES
+        value: "1"
+      - key: LOCAL_NEWS_DATABASE
+        value: /var/data/local_news.db
+      - key: LOCAL_NEWS_UPLOAD_FOLDER
+        value: /var/data/uploads
+      - key: LOCAL_NEWS_SEED_AHMEDABAD_DEMO_NEWS
+        value: "1"
+      - key: LOCAL_NEWS_SECRET_KEY
+        generateValue: true
+      - key: LOCAL_NEWS_PEPPER
+        generateValue: true
+    disk:
+      name: local-news-data
+      mountPath: /var/data
+      sizeGB: 1

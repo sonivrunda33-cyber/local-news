@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en" data-theme="{{ theme }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="csrf-token" content="{{ csrf_token }}">
+  <title>{% block title %}LOCAL NEWS{% endblock %} · LOCAL NEWS</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231558d6'/%3E%3Ctext x='32' y='45' font-size='40' font-weight='700' text-anchor='middle' fill='white' font-family='Arial'%3EL%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <script src="{{ url_for('static', filename='js/theme.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
+  {% block head %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}">
+<header class="topbar">
+  <div class="container topbar-inner">
+    <a class="brand" href="{{ url_for('news.home') }}" aria-label="LOCAL NEWS home">
+      <span class="brand-mark">L</span><span class="brand-text">LOCAL <b>NEWS</b></span>
+    </a>
+    {% if current_user %}
+    <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false" type="button">
+      <span></span><span></span><span></span>
+    </button>
+    <nav class="nav" id="mainNav">
+      <a href="{{ url_for('news.home') }}" class="{{ 'active' if request.endpoint == 'news.home' }}">Home</a>
+      {% if current_user.status == 'active' %}
+      <a href="{{ url_for('news.create') }}" class="{{ 'active' if request.endpoint == 'news.create' }}">Publish</a>
+      {% endif %}
+      <a href="{{ url_for('profile.profile') }}" class="{{ 'active' if request.endpoint == 'profile.profile' }}">Profile</a>
+      <a href="{{ url_for('settings.settings') }}" class="{{ 'active' if request.endpoint == 'settings.settings' }}">Settings</a>
+      <form method="post" action="{{ url_for('auth.logout') }}" class="nav-logout">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button class="btn btn-ghost btn-sm" type="submit">Logout</button>
+      </form>
+    </nav>
+    {% endif %}
+  </div>
+</header>
+
+<main class="container main">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flashes" role="status">
+      {% for category, message in messages %}
+        <div class="flash flash-{{ category }}">{{ message }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="footer">
+  <div class="container">
+    LOCAL NEWS · India's hyperlocal community news. Relevant / Fake votes are community feedback,
+    not proof of truth or falsity.
+  </div>
+</footer>
+<div class="toast-host" id="toastHost" aria-live="polite"></div>
+</body>
+</html>

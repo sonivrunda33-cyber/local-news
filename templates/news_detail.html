@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% from "_card.html" import vote_bar with context %}
+{% block title %}{{ post.title }}{% endblock %}
+{% block content %}
+<article class="card detail">
+  <div class="news-meta">
+    <span class="pin">📍 {{ news_service.location_label(post) }}</span>
+    <span title="{{ post.created_at|ist }}">{{ post.created_at|timeago }}</span>
+  </div>
+  <h1>{{ post.title }}</h1>
+  <div class="news-author">By {{ post.author_name }}</div>
+
+  {% if post.status == 'hidden' %}
+  <div class="flash flash-info">This news is hidden from other users because community feedback marked it
+    as Fake far more often than Relevant. Community votes are feedback, not proof.</div>
+  {% endif %}
+
+  {% if images %}
+  <div class="gallery {{ 'single' if images|length == 1 }}">
+    {% for fn in images %}
+    <a href="{{ url_for('uploaded_file', filename=fn) }}" target="_blank" rel="noopener noreferrer">
+      <img src="{{ url_for('uploaded_file', filename=fn) }}" alt="Photo {{ loop.index }} for {{ post.title }}" loading="lazy">
+    </a>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <p class="detail-text">{{ post.description }}</p>
+  {{ vote_bar(post) }}
+  <p class="hint">Relevant / Fake counts are community feedback, not guaranteed proof of truth or falsity.</p>
+
+  {% if post.user_id == current_user.id %}
+  <div class="owner-box">
+    <form method="post" action="{{ url_for('news.delete', post_id=post.id) }}" data-confirm="Delete this news permanently?">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <button class="btn btn-danger" type="submit">Delete my news</button>
+    </form>
+    <p class="hint">Published news cannot be edited, only deleted.</p>
+  </div>
+  {% endif %}
+</article>
+<script src="{{ url_for('static', filename='js/news.js') }}" defer></script>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% from "_location_select.html" import location_select %}
+{% block title %}Register{% endblock %}
+{% block body_class %}auth-page{% endblock %}
+{% block content %}
+<section class="auth-wrap">
+  <div class="auth-hero">
+    <h1>Join LOCAL NEWS</h1>
+    <p>Your name is taken automatically from the Citizen Database. There is no username to choose
+       and it cannot be changed.</p>
+  </div>
+  <form class="card auth-card" method="post" novalidate data-validate="register">
+    <div class="flash flash-info auth-notice" role="note">
+      <p>Login ke liye ID sab PPT mein mentioned hain.</p>
+      <p>Is city ke sabhi areas mein content available hai; baaki sab empty hain.</p>
+    </div>
+    <h2>Create account</h2>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label class="field">
+      <span>Citizen ID <small>(15 digits)</small></span>
+      <input name="citizen_id" inputmode="numeric" autocomplete="off" maxlength="15"
+             pattern="\d{15}" required value="{{ form.get('citizen_id', '') }}">
+    </label>
+    <label class="field">
+      <span>Citizen ID Code <small>(8 digits)</small></span>
+      <input name="citizen_id_code" type="password" inputmode="numeric" autocomplete="off"
+             maxlength="8" pattern="\d{8}" required>
+    </label>
+    <h3 class="section-sub">Where are you?</h3>
+    <div data-initial-state="{{ form.get('state_id', '') }}" data-initial-city="{{ form.get('city_id', '') }}"
+         data-initial-area="{{ form.get('area_id', '') }}" id="locInit">
+      {{ location_select(states, form) }}
+    </div>
+    <p class="hint">Only the area is needed, never your house address.</p>
+    <button class="btn btn-primary btn-block" type="submit">Register</button>
+    <p class="muted center">Already registered? <a href="{{ url_for('auth.login') }}">Log in</a></p>
+  </form>
+</section>
+<script src="{{ url_for('static', filename='js/locations.js') }}" defer></script>
+{% endblock %}

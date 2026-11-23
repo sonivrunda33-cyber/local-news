@@ -1,0 +1,26 @@
+{# Cascading State -> City -> Area selects. `form` holds previously chosen ids. #}
+{% macro location_select(states, form, prefix='') %}
+<div class="loc-select" data-location-select>
+  <label class="field">
+    <span>State / Union Territory</span>
+    <select name="state_id" data-level="state" required>
+      <option value="">Select state / UT</option>
+      {% for s in states %}
+      <option value="{{ s.id }}" {{ 'selected' if form.get('state_id')|string == s.id|string }}>{{ s.name }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label class="field">
+    <span>City / District</span>
+    <select name="city_id" data-level="city" disabled>
+      <option value="">Select city / district</option>
+    </select>
+  </label>
+  <label class="field">
+    <span>Locality / Area</span>
+    <select name="area_id" data-level="area" disabled>
+      <option value="">Select locality / area</option>
+    </select>
+  </label>
+</div>
+{% endmacro %}

@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Profile{% endblock %}
+{% block content %}
+<section class="card profile-head">
+  <div class="avatar" aria-hidden="true">{{ current_user.name[:1] }}</div>
+  <div>
+    <h1>{{ current_user.name }}</h1>
+    <p class="muted">Name from the Citizen Database (cannot be changed)</p>
+  </div>
+</section>
+
+<div class="grid-2">
+  <section class="card">
+    <h2>Account</h2>
+    <dl class="facts">
+      <dt>Citizen ID</dt><dd><code>{{ masked_id }}</code></dd>
+      <dt>Current location</dt><dd>{{ current_location or 'Not set' }}</dd>
+      <dt>Account status</dt>
+      <dd>
+        {% if banned %}<span class="badge badge-bad">Banned</span>
+        {% elif current_user.status == 'active' %}<span class="badge badge-ok">Active</span>
+        {% else %}<span class="badge badge-bad">Restricted (read-only)</span>{% endif %}
+      </dd>
+      <dt>Reputation</dt><dd>{{ current_user.reputation_points }} / 100 RP</dd>
+    </dl>
+    {% if restriction %}
+    <p class="warn">Your account is read-only: you can read news but cannot vote or publish.
+       Reason: {{ restriction.reason }}.</p>
+    {% endif %}
+    <p><a class="btn btn-ghost btn-sm" href="{{ url_for('settings.settings') }}">Open settings</a></p>
+  </section>
+
+  <section class="card">
+    <h2>Followed locations</h2>
+    {% if followed %}
+    <ul class="pill-list">{% for f in followed %}<li>{{ f.label }}</li>{% endfor %}</ul>
+    {% else %}<p class="muted">You don't follow any locations yet. Add some in Settings.</p>{% endif %}
+  </section>
+</div>
+
+<section class="card">
+  <h2>Saved news <span class="muted">(private)</span></h2>
+  {% if saved %}
+  <ul class="list">
+    {% for s in saved %}
+    <li class="list-row">
+      {% if s.status == 'active' or (s.status == 'hidden' and s.user_id == current_user.id) %}
+        <a href="{{ url_for('news.detail', post_id=s.id) }}">{{ s.title }}</a>
+      {% else %}
+        <span class="unavailable">
+          {{ 'This news was deleted by its creator.' if s.status == 'deleted' else 'This news is no longer available.' }}
+        </span>
+      {% endif %}
+      <button type="button" class="btn btn-ghost btn-sm" data-unsave="{{ s.id }}">Remove</button>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}<p class="muted">Nothing saved yet. Use the Save button on any news.</p>{% endif %}
+</section>
+
+<section class="card">
+  <h2>My published news</h2>
+  {% if my_posts %}
+  <ul class="list">
+    {% for p in my_posts %}
+    <li class="list-row">
+      <div>
+        <a href="{{ url_for('news.detail', post_id=p.id) }}">{{ p.title }}</a>
+        <div class="muted small">
+          ✔ {{ p.relevant_count }} · ✖ {{ p.fake_count }} · {{ p.created_at|timeago }}
+          {% if p.status == 'hidden' %}<span class="badge badge-bad">Hidden by community feedback</span>{% endif %}
+        </div>
+      </div>
+      <form method="post" action="{{ url_for('news.delete', post_id=p.id) }}" data-confirm="Delete this news permanently?">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button class="btn btn-danger btn-sm" type="submit">Delete</button>
+      </form>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}<p class="muted">You haven't published anything yet.</p>{% endif %}
+</section>
+<script src="{{ url_for('static', filename='js/news.js') }}" defer></script>
+{% endblock %}

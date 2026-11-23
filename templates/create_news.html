@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Publish news{% endblock %}
+{% block content %}
+<section class="card narrow">
+  <h1>Publish news</h1>
+  <p class="muted">It will be published for your current location. Published news
+     <b>cannot be edited</b>; you can only delete it.</p>
+  <form method="post" enctype="multipart/form-data" id="createForm" novalidate>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label class="field">
+      <span>News title</span>
+      <input name="title" maxlength="{{ cfg['TITLE_MAX'] }}" minlength="{{ cfg['TITLE_MIN'] }}" required value="{{ form_title }}">
+    </label>
+    <label class="field">
+      <span>Description <small class="counter" id="descCounter">0 / {{ cfg['DESCRIPTION_MAX'] }}</small></span>
+      <textarea name="description" rows="7" maxlength="{{ cfg['DESCRIPTION_MAX'] }}" required id="descInput">{{ form_description }}</textarea>
+    </label>
+    <label class="field">
+      <span>Images <small>(up to {{ cfg['MAX_IMAGES_PER_POST'] }}; JPG, PNG or WEBP; max 2 MB each)</small></span>
+      <input type="file" name="images" id="imageInput" accept="image/jpeg,image/png,image/webp" multiple
+             data-max-files="{{ cfg['MAX_IMAGES_PER_POST'] }}" data-max-bytes="{{ cfg['MAX_IMAGE_BYTES'] }}">
+    </label>
+    <div class="previews" id="previews"></div>
+    <div class="form-actions">
+      <button class="btn btn-primary" type="submit">Publish</button>
+      <a class="btn btn-ghost" href="{{ url_for('news.home') }}">Cancel</a>
+    </div>
+  </form>
+</section>
+<script src="{{ url_for('static', filename='js/news.js') }}" defer></script>
+{% endblock %}
